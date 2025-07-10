@@ -139,3 +139,18 @@ enum OP_MODE {
 	NDOF_FMC_OFF = 0x0B,
 	NDOF = 0x0C
 } opMode = CONFIGMODE;
+
+class Custom_BNO055 {
+	public:
+		Custom_BNO055(uint8_t addr);
+		
+		void setMode(OP_MODE mode);
+		
+		void setAxisRemap(uint8_t remap, uint8_t sign);
+		
+		void setAccelConfig(uint8_t gRange, uint8_t bandwidth, uint8_t opMode);
+		
+		void setGyroConfig(uint8_t range, uint8_t bandwidth, uint8_t opMode);
+		
+		void setMagConfig(uint8_t rate, uint8_t opMode, uint8_t pwrMode);
+};
