@@ -83,7 +83,7 @@
 #define ACC_OFFSET_Z_LSB 0x59
 #define ACC_OFFSET_Z_MSB 0x5A
 #define MAG_OFFSET_X_LSB 0x5B
-#define MAG_OFFSET_X_MSB 0x56C
+#define MAG_OFFSET_X_MSB 0x5C
 #define MAG_OFFSET_Y_LSB 0x5D
 #define MAG_OFFSET_Y_MSB 0x5E
 #define MAG_OFFSET_Z_LSB 0x5F
@@ -140,7 +140,66 @@ enum OP_MODE {
 	NDOF = 0x0C
 } opMode = CONFIGMODE;
 
+enum ACCEL_UNIT {
+	MS2 = 0x00,
+	MG = 0x01
+};
+
+enum ANGULAR_RATE_UNIT {
+	DPS = 0X00,
+	RPS = 0x02
+};
+
+enum EULER_UNIT {
+	DEGREES = 0x00,
+	RADIANS = 0x04
+};
+
+enum TEMPERATURE_UNIT {
+	DEG_C = 0x00,
+	DEG_F = 0x10
+};
+
+enum FUSION_OUTPUT_FORMAT {
+	WINDOWS = 0x00,
+	ANDROID = 0x80
+};
+
 class Custom_BNO055 {
+	private:
+		uint8_t _currentRegisterPage = 0x00;
+		
+		uint8_t _startingReadAddr = 0x00;
+		
+		int _magData[3] = {0, 0, 0};
+		
+		int _gyrData[3] = {0, 0, 0};
+		
+		int _accelData[3] = {0, 0, 0};
+		
+		int _eulData[3] = {0, 0, 0};
+		
+		// Not going to bother with quaternion data right now.
+		
+		int _linAccelData[3] = {0, 0, 0};
+		
+		int _gravityVectorData[3] = {0, 0, 0};
+		
+		int8_t _temperature = 0;
+		
+		ACCEL_UNIT _accelUnit = MS2;
+		
+		ANGULAR_RATE_UNIT _angRateUnit = DPS;
+		
+		EULER_UNIT _eulerUnit = DEGREES;
+		
+		TEMPERATURE_UNIT _tempUnit = DEG_C;
+		
+		FUSION_OUTPUT_FORMAT _fusionOutputFormat = WINDOWS;  // TODO: Verify that this value for the default is correct.
+		
+		void setDataUnits();
+		
+		
 	public:
 		Custom_BNO055(uint8_t addr);
 		
@@ -153,4 +212,20 @@ class Custom_BNO055 {
 		void setGyroConfig(uint8_t range, uint8_t bandwidth, uint8_t opMode);
 		
 		void setMagConfig(uint8_t rate, uint8_t opMode, uint8_t pwrMode);
+		
+		void setAccelUnit(ACCEL_UNIT unit);
+		
+		void setAngularRateUnit(ANGULAR_RATE_UNIT unit);
+		
+		void setEulerUnit(EULER_UNIT unit);
+		
+		void setTempUnit(TEMPERATURE_UNIT unit);
+		
+		// Not going to bother with the offsets right now.
+		
+		// Not going to bother with the radii right now.
+		
+		// OK, this is where the fun begins.
+		
+		void 
 };
