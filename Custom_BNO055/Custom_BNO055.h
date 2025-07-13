@@ -106,7 +106,6 @@ enum PAGE_0_REG {
 };
 
 enum PAGE_1_REG {
-	PAGE_ID = 0x07,
 	ACC_CONFIG = 0x08,
 	MAG_CONFIG = 0x09,
 	GYR_CONFIG_0 = 0x0A,
@@ -175,25 +174,31 @@ enum FUSION_OUTPUT_FORMAT {
 
 class Custom_BNO055 {
 	private:
+		uint8_t _addr;
+		
 		uint8_t _currentRegisterPage = 0x00;
 		
 		uint8_t _startingReadAddr = 0x00;
 		
-		int16_t _magData[3] = {0, 0, 0};
+		OP_MODE _opMode = CONFIGMODE;
 		
-		int16_t _gyroData[3] = {0, 0, 0};
+		int8_t _allData[45];
 		
-		int16_t _accelData[3] = {0, 0, 0};
+		int8_t* _magData = _allData;
 		
-		int16_t _eulerData[3] = {0, 0, 0};
+		int8_t* _gyroData = _allData + (sizeof(int8_t) * 6);
 		
-		// Not going to bother with quaternion data right now.
+		int8_t* _accelData = _allData + (sizeof(int8_t) * 12);
 		
-		int16_t _linAccelData[3] = {0, 0, 0};
+		int8_t* _eulerData = _allData + (sizeof(int8_t) * 18);
 		
-		int16_t _gravityVectorData[3] = {0, 0, 0};
+		int8_t* _quaternionData = _allData + (sizeof(int8_t) * 24);
 		
-		int8_t _temperature = 0;
+		int8_t* _linAccelData = _allData + (sizeof(int8_t) * 32);
+		
+		int8_t* _gravityVectorData = _allData + (sizeof(int8_t) * 38);
+		
+		int8_t* _temperatureData = _allData + (sizeof(int8_t) * 44);
 		
 		ACCEL_UNIT _accelUnit = MS2;
 		
@@ -207,9 +212,21 @@ class Custom_BNO055 {
 		
 		void setDataUnits();
 		
+		uint8_t readSingleRegister(PAGE_0_REG reg);
 		
+		uint8_t readSingleRegister(PAGE_1_REG reg);
+		
+		uint8_t readSingleRegister(uint8_t reg);
+		
+		uint8_t writeSingleRegister(PAGE_0_REG reg);
+		
+		uint8_t writeSingleRegister(PAGE_1_REG reg);
 	public:
 		Custom_BNO055(uint8_t addr);
+		
+		bool begin();
+		
+		bool begin(OP_MODE mode);
 		
 		void setMode(OP_MODE mode);
 		
