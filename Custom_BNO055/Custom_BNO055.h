@@ -13,6 +13,8 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+#define PAGE_ID_REG 0x07
+
 /// Register map page 0
 enum PAGE_0_REG {
 	CHIP_ID = 0x00,
@@ -22,7 +24,6 @@ enum PAGE_0_REG {
 	SW_REV_ID_LSB = 0x04,
 	SW_REV_ID_MSB = 0x05,
 	BL_REV_ID = 0x06,
-	PAGE_ID = 0x07,
 	ACC_DATA_X_LSB = 0x08,
 	ACC_DATA_X_MSB = 0x09,
 	ACC_DATA_Y_LSB = 0x0A,
@@ -218,9 +219,11 @@ class Custom_BNO055 {
 		
 		uint8_t readSingleRegister(uint8_t reg);
 		
-		uint8_t writeSingleRegister(PAGE_0_REG reg);
+		uint8_t writeSingleRegister(PAGE_0_REG reg, uint8_t val);
 		
-		uint8_t writeSingleRegister(PAGE_1_REG reg);
+		uint8_t writeSingleRegister(PAGE_1_REG reg, uint8_t val);
+		
+		uint8_t writeSingleRegister(uint8_t reg, uint8_t val);
 	public:
 		Custom_BNO055(uint8_t addr);
 		

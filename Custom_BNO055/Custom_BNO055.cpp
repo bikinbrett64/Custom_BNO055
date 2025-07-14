@@ -1,3 +1,15 @@
+/**
+	Custom_BNO055.cpp
+	
+	For my custom electronics aboard Zenith (tentative name hehe).
+	
+	Author: Brett Warren
+	
+*/
+
+#ifndef CUSTOM_BNO055_CPP
+#define CUSTOM_BNO055_CPP
+
 #include <Arduino.h>
 #include <Wire.h>
 #include "Custom_BNO055.h"
@@ -5,7 +17,7 @@
 // Public functions.
 
 Custom_BNO055::Custom_BNO055(uint8_t addr) {
-	memset(_allData, 0, 22 * sizeof(int16_t));
+	memset(_allData, 0, sizeof(_allData);
 	_addr = addr;
 }
 
@@ -134,34 +146,67 @@ bool Custom_BNO055::isFullyCalibrated() {
 	return true;
 }
 
+
 // Private functions.
 
 void Custom_BNO055::setDataUnits() {
-	
+	uint8_t result = 0x00;
+	result |= (uint8_t)_accelUnit | (uint8_t)_angRateUnit | (uint8_t)_eulerUnit | (uint8_t)_tempUnit | (uint8_t)_fusionOutputFormat;
+	writeSingleRegister(UNIT_SEL, result);
 }
 		
 uint8_t Custom_BNO055::readSingleRegister(PAGE_0_REG reg) {
 	uint8_t regNum = (uint8_t)reg;
 	if (_currentRegisterPage) {
-		
+		_currentRegisterPage = writeSingleRegister(PAGE_ID_REG, 0x00);
 	}
-	
-	
-	
+	return readSingleRegister(regNum);
 }
 		
 uint8_t Custom_BNO055::readSingleRegister(PAGE_1_REG reg) {
-	
+	uint8_t regNum = (uint8_t)reg;
+	if (!_currentRegisterPage) {
+		_currentRegisterPage = writeSingleRegister(PAGE_ID_REG, 0x01);
+	}
+	return readSingleRegister(regNum);
 }
 
 uint8_t Custom_BNO055::readSingleRegister(uint8_t reg) {
-	Wire.beginTransmission(_addr);
-	Wire.write(reg);
-	Wire.endTransmission();
-	
-	_startingReadAddr = reg;
+	if (_startingReadAddr != reg) {
+		Wire.beginTransmission(_addr);
+		Wire.write(reg);  // Update the starting read address if necessary.
+		Wire.endTransmission();
+		_startingReadAddr = reg;
+	}
 	
 	Wire.requestFrom(_addr, 1);
 	while (!Wire.available());
 	return Wire.read();
 }
+
+uint8_t Custom_BNO055::writeSingleRegister(PAGE_0_REG reg, uint8_t val) {
+	uint8_t regNum = (uint8_t)reg;
+	if (_currentRegisterPage) {
+		_currentRegisterPage = writeSingleRegister(PAGE_ID_REG, 0x00);
+	}
+	return writeSingleRegister(regNum, val);
+}
+		
+uint8_t Custom_BNO055::writeSingleRegister(PAGE_1_REG reg, uint8_t val) {
+	uint8_t regNum = (uint8_t)reg;
+	if (!_currentRegisterPage) {
+		_currentRegisterPage = writeSingleRegister(PAGE_ID_REG, 0x01);
+	}
+	return writeSingleRegister(regNum, val);
+}
+		
+uint8_t Custom_BNO055::writeSingleRegister(uint8_t reg, uint8_t val) {
+	_startingReadAddr = reg;
+	Wire.beginTransmission(_addr);
+	Wire.write(reg);
+	Wire.write(val);
+	Wire.endTransmission();
+	return val;
+}
+
+#endif
