@@ -185,11 +185,11 @@ class Custom_BNO055 {
 		
 		int8_t _allData[45];
 		
-		int8_t* _magData = _allData;
+		int8_t* _accelData = _allData;
 		
-		int8_t* _gyroData = _allData + (sizeof(int8_t) * 6);
+		int8_t* _magData = _allData + (sizeof(int8_t) * 6);
 		
-		int8_t* _accelData = _allData + (sizeof(int8_t) * 12);
+		int8_t* _gyroData = _allData + (sizeof(int8_t) * 12);
 		
 		int8_t* _eulerData = _allData + (sizeof(int8_t) * 18);
 		
@@ -269,7 +269,7 @@ class Custom_BNO055 {
 		
 		uint8_t* updatEulerData();
 		
-		// Again, not going to bother with quaternion data right now.
+		uint8_t* updateQuaternionData();
 		
 		uint8_t* updateLinearAccelData();
 		

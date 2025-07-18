@@ -35,91 +35,97 @@ bool Custom_BNO055::begin(OP_MODE mode) {
 }
 
 void Custom_BNO055::setMode(OP_MODE mode) {
-	
+	// FIXME: Function not properly implemented lol
 }
 
 void Custom_BNO055::setAxisRemap(uint8_t remap, uint8_t sign) {
-	
+	// FIXME: Function not properly implemented lol
 }
 
 void Custom_BNO055::setAccelConfig(uint8_t gRange, uint8_t bandwidth, uint8_t opMode) {
-	
+	// FIXME: Function not properly implemented lol
 }
 
 void Custom_BNO055::setGyroConfig(uint8_t range, uint8_t bandwidth, uint8_t opMode) {
-	
+	// FIXME: Function not properly implemented lol
 }
 
 void Custom_BNO055::setMagConfig(uint8_t rate, uint8_t opMode, uint8_t pwrMode) {
-	
+	// FIXME: Function not properly implemented lol
 }
 
 void Custom_BNO055::setAccelUnit(ACCEL_UNIT unit) {
-	
+	// FIXME: Function not properly implemented lol
 }
 
 void Custom_BNO055::setAngularRateUnit(ANGULAR_RATE_UNIT unit) {
-	
+	// FIXME: Function not properly implemented lol
 }
 
 void Custom_BNO055::setEulerUnit(EULER_UNIT unit) {
-	
+	// FIXME: Function not properly implemented lol
 }
 
 void Custom_BNO055::setTempUnit(TEMPERATURE_UNIT unit) {
-	
+	// FIXME: Function not properly implemented lol
 }
 
 uint8_t* Custom_BNO055::updateMagData() {
-	return _magData;
+	return readMultipleRegisters(MAG_DATA_X_LSB, _magData, 6);
 }
 
 uint8_t* Custom_BNO055::updateGyroData() {
-	return _gyroData;
+	return readMultipleRegisters(GYR_DATA_X_LSB, _gyroData, 6);
 }
 
 uint8_t* Custom_BNO055::updateAccelData() {
-	return _accelData;
+	return readMultipleRegisters(ACC_DATA_X_LSB, _accelData, 6);
 }
 
 uint8_t* Custom_BNO055::updatEulerData() {
-	return _eulerData;
+	return readMultipleRegisters(EUL_DATA_X_LSB, _eulerData, 6);
+}
+
+uint8_t* Custom_BNO055::updateQuaternionData() {
+	return readMultipleRegisters(QUA_DATA_W_LSB, _quaternionData, 8);
 }
 
 uint8_t* Custom_BNO055::updateLinearAccelData() {
-	return _linAccelData;
+	return readMultipleRegisters(LIA_DATA_X_LSB, _linAccelData, 6);
 }
 
 uint8_t* Custom_BNO055::updateGravityVectorData() {
-	return _gravityVectorData;
+	return readMultipleRegisters(GRV_DATA_X_LSB, _gravityVectorData, 6);
 }
 
 uint8_t* Custom_BNO055::updateTemperatureData() {
-	return _temperatureData;
+	return readSingleRegister(TEMP);
 }
 
 uint8_t* Custom_BNO055::updateAllData() {
+	readMultipleRegisters(ACC_DATA_X_LSB, _allData, 24);  // Wire library's 32-byte read buffer necessitates splitting the 45-byte read into two function calls.
+	readMultipleRegisters(QUA_DATA_W_LSB, _quaternionData, 21);
 	return _allData;
 }
 
 void Custom_BNO055::configAccelSMNMInterrupt() {
-	
+	// FIXME: Function not properly implemented lol
 }
 
 void Custom_BNO055::configAccelAMInterrupt() {
-	
+	// FIXME: Function not properly implemented lol
 }
 
 void Custom_BNO055::configAccelHighGInterrupt() {
-	
+	// FIXME: Function not properly implemented lol
 }
 
 void Custom_BNO055::configGyroHRInterrupt() {
-	
+	// FIXME: Function not properly implemented lol
 }
 
 void Custom_BNO055::configGyroAMInterrupt() {
-	
+	// FIXME: Function not properly implemented lol
 }
 
 uint8_t Custom_BNO055::getLastSelfTest() {
@@ -127,22 +133,26 @@ uint8_t Custom_BNO055::getLastSelfTest() {
 }
 
 void Custom_BNO055::triggerSelfTest() {
-	
+	// FIXME: Function not properly implemented lol
 }
 
 uint8_t Custom_BNO055::getAccelCalibration() {
+	// FIXME: Function not properly implemented lol
 	return 0;
 }
 
 uint8_t Custom_BNO055::getGyroCalibration() {
+	// FIXME: Function not properly implemented lol
 	return 0;
 }
 
 uint8_t Custom_BNO055::getMagCalibration() {
+	// FIXME: Function not properly implemented lol
 	return 0;
 }
 
 bool Custom_BNO055::isFullyCalibrated() {
+	// FIXME: Function not properly implemented lol
 	return true;
 }
 
@@ -214,14 +224,14 @@ uint8_t* Custom_BNO055::readMultipleRegisters(PAGE_0_REG startReg, uint8_t* dest
 	if (_currentRegisterPage) {
 		_currentRegisterPage = writeSingleRegister(PAGE_ID_REG, 0x00);
 	}
-	if (_startingReadAddr != reg) {
+	if (_startingReadAddr != regNum) {
 		Wire.beginTransmission(_addr);
-		Wire.write(reg);  // Update the starting read address if necessary.
+		Wire.write(regNum);  // Update the starting read address if necessary.
 		Wire.endTransmission();
-		_startingReadAddr = reg;
+		_startingReadAddr = regNum;
 	}
 	
-	return readMultipleRegisters(regNum, dest, num);
+	return readMultipleRegisters(dest, num);
 }
 		
 uint8_t* Custom_BNO055::readMultipleRegisters(PAGE_1_REG startReg, uint8_t* dest, int num) {
@@ -229,17 +239,17 @@ uint8_t* Custom_BNO055::readMultipleRegisters(PAGE_1_REG startReg, uint8_t* dest
 	if (!_currentRegisterPage) {
 		_currentRegisterPage = writeSingleRegister(PAGE_ID_REG, 0x01);
 	}
-	if (_startingReadAddr != reg) {
+	if (_startingReadAddr != regNum) {
 		Wire.beginTransmission(_addr);
-		Wire.write(reg);  // Update the starting read address if necessary.
+		Wire.write(regNum);  // Update the starting read address if necessary.
 		Wire.endTransmission();
-		_startingReadAddr = reg;
+		_startingReadAddr = regNum;
 	}
 	
-	return readMultipleRegisters(regNum, dest, num);
+	return readMultipleRegisters(dest, num);
 }
 
-uint8_t* Custom_BNO055::readMultipleRegisters(uint8_t startReg, uint8_t* dest, int num) {
+uint8_t* Custom_BNO055::readMultipleRegisters(uint8_t* dest, int num) {
 	const int temp = num;
 	int i = 0;
 	int result[temp];
