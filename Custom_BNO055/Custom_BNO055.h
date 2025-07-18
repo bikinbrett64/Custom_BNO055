@@ -146,7 +146,7 @@ enum OP_MODE {
 	M4G = 0x0A,
 	NDOF_FMC_OFF = 0x0B,
 	NDOF = 0x0C
-} opMode = CONFIGMODE;
+};
 
 enum ACCEL_UNIT {
 	MS2 = 0x00,
@@ -224,6 +224,12 @@ class Custom_BNO055 {
 		uint8_t writeSingleRegister(PAGE_1_REG reg, uint8_t val);
 		
 		uint8_t writeSingleRegister(uint8_t reg, uint8_t val);
+		
+		uint8_t* readMultipleRegisters(PAGE_0_REG startReg, uint8_t* dest, int num);
+		
+		uint8_t* readMultipleRegisters(PAGE_1_REG startReg, uint8_t* dest, int num);
+		
+		uint8_t* readMultipleRegisters(uint8_t startReg, uint8_t* dest, int num);
 	public:
 		Custom_BNO055(uint8_t addr);
 		
@@ -255,23 +261,23 @@ class Custom_BNO055 {
 		
 		// OK, this is where the fun begins.
 		
-		int16_t* updateMagData();
+		uint8_t* updateMagData();
 		
-		int16_t* updateGyroData();
+		uint8_t* updateGyroData();
 		
-		int16_t* updateAccelData();
+		uint8_t* updateAccelData();
 		
-		int16_t* updatEulerData();
+		uint8_t* updatEulerData();
 		
 		// Again, not going to bother with quaternion data right now.
 		
-		int16_t* updateLinearAccelData();
+		uint8_t* updateLinearAccelData();
 		
-		int16_t* updateGravityVectorData();
+		uint8_t* updateGravityVectorData();
 		
-		int16_t* updateTemperatureData();
+		uint8_t* updateTemperatureData();
 		
-		int16_t* updateAllData();
+		uint8_t* updateAllData();
 		
 		// And now for the interrupt settings.
 		

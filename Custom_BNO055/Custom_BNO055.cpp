@@ -70,36 +70,36 @@ void Custom_BNO055::setTempUnit(TEMPERATURE_UNIT unit) {
 	
 }
 
-int16_t* Custom_BNO055::updateMagData() {
-	
+uint8_t* Custom_BNO055::updateMagData() {
+	return _magData;
 }
 
-int16_t* Custom_BNO055::updateGyroData() {
-	
+uint8_t* Custom_BNO055::updateGyroData() {
+	return _gyroData;
 }
 
-int16_t* Custom_BNO055::updateAccelData() {
-	
+uint8_t* Custom_BNO055::updateAccelData() {
+	return _accelData;
 }
 
-int16_t* Custom_BNO055::updatEulerData() {
-	
+uint8_t* Custom_BNO055::updatEulerData() {
+	return _eulerData;
 }
 
-int16_t* Custom_BNO055::updateLinearAccelData() {
-	
+uint8_t* Custom_BNO055::updateLinearAccelData() {
+	return _linAccelData;
 }
 
-int16_t* Custom_BNO055::updateGravityVectorData() {
-	
+uint8_t* Custom_BNO055::updateGravityVectorData() {
+	return _gravityVectorData;
 }
 
-int16_t* Custom_BNO055::updateTemperatureData() {
-	
+uint8_t* Custom_BNO055::updateTemperatureData() {
+	return _temperatureData;
 }
 
-int16_t* Custom_BNO055::updateAllData() {
-	
+uint8_t* Custom_BNO055::updateAllData() {
+	return _allData;
 }
 
 void Custom_BNO055::configAccelSMNMInterrupt() {
@@ -123,7 +123,7 @@ void Custom_BNO055::configGyroAMInterrupt() {
 }
 
 uint8_t Custom_BNO055::getLastSelfTest() {
-	return 0;
+	return readRegister(ST_RESULT);
 }
 
 void Custom_BNO055::triggerSelfTest() {
@@ -207,6 +207,48 @@ uint8_t Custom_BNO055::writeSingleRegister(uint8_t reg, uint8_t val) {
 	Wire.write(val);
 	Wire.endTransmission();
 	return val;
+}
+
+uint8_t* Custom_BNO055::readMultipleRegisters(PAGE_0_REG startReg, uint8_t* dest, int num) {
+	uint8_t regNum = (uint8_t)startReg;
+	if (_currentRegisterPage) {
+		_currentRegisterPage = writeSingleRegister(PAGE_ID_REG, 0x00);
+	}
+	if (_startingReadAddr != reg) {
+		Wire.beginTransmission(_addr);
+		Wire.write(reg);  // Update the starting read address if necessary.
+		Wire.endTransmission();
+		_startingReadAddr = reg;
+	}
+	
+	return readMultipleRegisters(regNum, dest, num);
+}
+		
+uint8_t* Custom_BNO055::readMultipleRegisters(PAGE_1_REG startReg, uint8_t* dest, int num) {
+	uint8_t regNum = (uint8_t)startReg;
+	if (!_currentRegisterPage) {
+		_currentRegisterPage = writeSingleRegister(PAGE_ID_REG, 0x01);
+	}
+	if (_startingReadAddr != reg) {
+		Wire.beginTransmission(_addr);
+		Wire.write(reg);  // Update the starting read address if necessary.
+		Wire.endTransmission();
+		_startingReadAddr = reg;
+	}
+	
+	return readMultipleRegisters(regNum, dest, num);
+}
+
+uint8_t* Custom_BNO055::readMultipleRegisters(uint8_t startReg, uint8_t* dest, int num) {
+	const int temp = num;
+	int i = 0;
+	int result[temp];
+	Wire.requestFrom(_addr, num);
+	while (Wire.available() < num);
+	while (Wire.available()) {
+		result[++i] = Wire.read();
+	}
+	return memcpy(dest, result, num);
 }
 
 #endif
