@@ -173,13 +173,24 @@ enum FUSION_OUTPUT_FORMAT {
 	ANDROID = 0x80
 };
 
+enum ERROR_CODE {
+	COMM_ERROR = 0x01,
+	INIT_ERROR = 0x02,
+	CONFIG_ERROR = 0x04,
+	REG_ERROR = 0x08,
+	SELFTEST_ERROR = 0x10,
+	OTHER_ERROR = 0x80
+};
+
 class Custom_BNO055 {
 	private:
 		uint8_t _addr;
 		
-		uint8_t _currentRegisterPage = 0x00;
+		uint8_t _currentRegisterPage;
 		
-		uint8_t _startingReadAddr = 0x00;
+		uint8_t _startingReadAddr;
+		
+		uint8_t _error;
 		
 		OP_MODE _opMode = CONFIGMODE;
 		

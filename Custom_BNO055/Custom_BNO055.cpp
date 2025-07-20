@@ -23,6 +23,11 @@ Custom_BNO055::Custom_BNO055(uint8_t addr) {
 
 bool Custom_BNO055::begin() {
 	// TODO: Figure out preliminary communications to be performed.
+	_error = _startingReadAddr = _currentRegisterPage = 0x00;
+	delay(450);  // Wait for the IMU's power-up sequence to finish (should take ~400ms, but I decided to add some margin).
+	if (readSingleRegister(PAGE_0_REG::CHIP_ID) != 0xA0) {  // This is a dummy read to ensure that communication has been established.
+		return false;
+	}
 	return true;
 }
 
@@ -35,7 +40,7 @@ bool Custom_BNO055::begin(OP_MODE mode) {
 }
 
 void Custom_BNO055::setMode(OP_MODE mode) {
-	// FIXME: Function not properly implemented lol
+	writeSingleRegister(PAGE_0_REG::OPR_MODE, (uint8_t)mode);
 }
 
 void Custom_BNO055::setAxisRemap(uint8_t remap, uint8_t sign) {
@@ -71,40 +76,40 @@ void Custom_BNO055::setTempUnit(TEMPERATURE_UNIT unit) {
 }
 
 uint8_t* Custom_BNO055::updateMagData() {
-	return readMultipleRegisters(MAG_DATA_X_LSB, _magData, 6);
+	return readMultipleRegisters(PAGE_0_REG::MAG_DATA_X_LSB, _magData, 6);
 }
 
 uint8_t* Custom_BNO055::updateGyroData() {
-	return readMultipleRegisters(GYR_DATA_X_LSB, _gyroData, 6);
+	return readMultipleRegisters(PAGE_0_REG::GYR_DATA_X_LSB, _gyroData, 6);
 }
 
 uint8_t* Custom_BNO055::updateAccelData() {
-	return readMultipleRegisters(ACC_DATA_X_LSB, _accelData, 6);
+	return readMultipleRegisters(PAGE_0_REG::ACC_DATA_X_LSB, _accelData, 6);
 }
 
 uint8_t* Custom_BNO055::updatEulerData() {
-	return readMultipleRegisters(EUL_DATA_X_LSB, _eulerData, 6);
+	return readMultipleRegisters(PAGE_0_REG::EUL_DATA_X_LSB, _eulerData, 6);
 }
 
 uint8_t* Custom_BNO055::updateQuaternionData() {
-	return readMultipleRegisters(QUA_DATA_W_LSB, _quaternionData, 8);
+	return readMultipleRegisters(PAGE_0_REG::QUA_DATA_W_LSB, _quaternionData, 8);
 }
 
 uint8_t* Custom_BNO055::updateLinearAccelData() {
-	return readMultipleRegisters(LIA_DATA_X_LSB, _linAccelData, 6);
+	return readMultipleRegisters(PAGE_0_REG::LIA_DATA_X_LSB, _linAccelData, 6);
 }
 
 uint8_t* Custom_BNO055::updateGravityVectorData() {
-	return readMultipleRegisters(GRV_DATA_X_LSB, _gravityVectorData, 6);
+	return readMultipleRegisters(PAGE_0_REG::GRV_DATA_X_LSB, _gravityVectorData, 6);
 }
 
 uint8_t* Custom_BNO055::updateTemperatureData() {
-	return readSingleRegister(TEMP);
+	return readSingleRegister(PAGE_0_REG::TEMP);
 }
 
 uint8_t* Custom_BNO055::updateAllData() {
-	readMultipleRegisters(ACC_DATA_X_LSB, _allData, 24);  // Wire library's 32-byte read buffer necessitates splitting the 45-byte read into two function calls.
-	readMultipleRegisters(QUA_DATA_W_LSB, _quaternionData, 21);
+	readMultipleRegisters(PAGE_0_REG::ACC_DATA_X_LSB, _allData, 24);  // The Wire library's 32-byte read buffer necessitates splitting the 45-byte read into two function calls.
+	readMultipleRegisters(PAGE_0_REG::QUA_DATA_W_LSB, _quaternionData, 21);
 	return _allData;
 }
 
@@ -129,7 +134,7 @@ void Custom_BNO055::configGyroAMInterrupt() {
 }
 
 uint8_t Custom_BNO055::getLastSelfTest() {
-	return readRegister(ST_RESULT);
+	return readRegister(PAGE_0_REG::ST_RESULT);
 }
 
 void Custom_BNO055::triggerSelfTest() {
@@ -162,7 +167,7 @@ bool Custom_BNO055::isFullyCalibrated() {
 void Custom_BNO055::setDataUnits() {
 	uint8_t result = 0x00;
 	result |= (uint8_t)_accelUnit | (uint8_t)_angRateUnit | (uint8_t)_eulerUnit | (uint8_t)_tempUnit | (uint8_t)_fusionOutputFormat;
-	writeSingleRegister(UNIT_SEL, result);
+	writeSingleRegister(PAGE_0_REG::UNIT_SEL, result);
 }
 		
 uint8_t Custom_BNO055::readSingleRegister(PAGE_0_REG reg) {
@@ -188,9 +193,14 @@ uint8_t Custom_BNO055::readSingleRegister(uint8_t reg) {
 		Wire.endTransmission();
 		_startingReadAddr = reg;
 	}
-	
+	unsigned long ctr = millis();
 	Wire.requestFrom(_addr, 1);
-	while (!Wire.available());
+	while (!Wire.available()) {
+		if (millis() > ctr + 5) {  // If the device takes too long to respond, there must be a problem.
+			_error |= ERROR_CODE::COMM_ERROR;
+			return 0x00;
+		}
+	}
 	return Wire.read();
 }
 
@@ -253,8 +263,14 @@ uint8_t* Custom_BNO055::readMultipleRegisters(uint8_t* dest, int num) {
 	const int temp = num;
 	int i = 0;
 	int result[temp];
+	unsigned long ctr = millis();
 	Wire.requestFrom(_addr, num);
-	while (Wire.available() < num);
+	while (Wire.available() < num) {
+		if (millis() > ctr + 10) {  // If the device takes too long to respond, something bad must have happened.
+			_error |= ERROR_CODE::COMM_ERROR;
+			return dest;
+		}
+	}
 	while (Wire.available()) {
 		result[++i] = Wire.read();
 	}
